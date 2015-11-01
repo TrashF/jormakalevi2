@@ -1,0 +1,17 @@
+{
+  "name": "trashf/jormakalevi",
+  "description": "Simple yet extendable MongoDB wrapper",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Reetu Mönkkönen",
+      "email": "TrashF@taistelumarsu.org"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "jormakalevi\\": "src/jormakalevi"
+    }
+  }
+}
