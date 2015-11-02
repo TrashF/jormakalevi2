@@ -110,17 +110,18 @@ class Mongo {
 	/**
 	 * @param string $className
 	 * @param array $data
-	 * @return mixed|Document
+	 * @param array $options
+	 * @return Document|mixed
 	 * @throws \Exception
 	 */
-	public static function factory($className = '', array $data = array()) {
+	public static function factory($className = '', array $data = array(), array $options = array()) {
 		if (empty($className)) {
 			$className = 'jormakalevi\Document';
 		}
 		if (!class_exists($className)) {
 			throw new \Exception('Class not found: "' . $className . '".');
 		}
-		return new $className($data);
+		return new $className($data, $options);
 	}
 
 }

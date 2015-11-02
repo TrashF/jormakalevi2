@@ -25,9 +25,13 @@ class Document implements \JsonSerializable {
 
 	/**
 	 * @param array $data
+	 * @param array $options
 	 */
-	public function __construct(array $data = array()) {
+	public function __construct(array $data = array(), array $options = array()) {
 		$this->_data = $data;
+		if (empty($options['noAfterFind'])) {
+			$this->_afterFind($options);
+		}
 	}
 
 	/**
