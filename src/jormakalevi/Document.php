@@ -21,7 +21,7 @@ class Document implements \JsonSerializable {
 	/**
 	 * @var string
 	 */
-	protected $_collecionName = 'Common';
+	protected $_collectionName = 'Common';
 
 	/**
 	 * @param array $data
@@ -195,7 +195,7 @@ class Document implements \JsonSerializable {
 	 * @return \MongoCollection
 	 */
 	protected function _getCollection() {
-		return Mongo::getInstance()->getDB()->{$this->_collecionName};
+		return Mongo::getInstance()->getDB()->{$this->_collectionName};
 	}
 
 	/**
