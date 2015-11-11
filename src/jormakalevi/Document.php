@@ -206,24 +206,26 @@ class Document implements \JsonSerializable {
 	 * @return array
 	 */
 	public function find(array $query = array(), array $sort = array(), $limit = null, $skip = null) {
-		// TODO: add support for $and and $or queries
-		if (isset($query['className'])) {
-			if (is_array($query['className']) && !empty($query['className']['$in'])) {
-				$newIn = array();
-				foreach ($query['className']['$in'] as $className) {
-					if (Mongo::getInstance()->getUser()->can($className, 'read')) {
-						$newIn[] = $className;
+		if (!Mongo::getInstance()->isAuthDisabled()) {
+			// TODO: add support for $and and $or queries
+			if (isset($query['className'])) {
+				if (is_array($query['className']) && !empty($query['className']['$in'])) {
+					$newIn = array();
+					foreach ($query['className']['$in'] as $className) {
+						if (Mongo::getInstance()->getUser()->can($className, 'read')) {
+							$newIn[] = $className;
+						}
 					}
-				}
-				if (empty($newIn)) {
+					if (empty($newIn)) {
+						return array();
+					}
+					$query['className']['$in'] = $newIn;
+				} elseif (is_string($query['className']) && !Mongo::getInstance()->getUser()->can($query['className'], 'read')) {
 					return array();
 				}
-				$query['className']['$in'] = $newIn;
-			} elseif (is_string($query['className']) && !Mongo::getInstance()->getUser()->can($query['className'], 'read')) {
-				return array();
+			} else {
+				$query['className'] = array('$in' => Mongo::getInstance()->getUser()->getPermissions('read'));
 			}
-		} else {
-			$query['className'] = array('$in' => Mongo::getInstance()->getUser()->getPermissions('read'));
 		}
 		$cursor = $this->_getCollection()->find($query);
 		if (!empty($sort)) {
