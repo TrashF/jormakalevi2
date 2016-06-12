@@ -1,6 +1,8 @@
 <?php
 
 namespace jormakalevi;
+use MongoDB\BSON\ObjectID;
+use \MongoDB\Collection;
 
 /**
  * Class Document
@@ -82,18 +84,18 @@ class Document implements \JsonSerializable {
 	}
 
 	/**
-	 * @return \MongoId|null
+	 * @return ObjectID|null
 	 */
 	public function getID() {
 		// ensure it is always either null or an instance of \MongoId
 		if (!isset($this->_data['_id'])) {
 			return null;
 		}
-		if ($this->_data['_id'] instanceof \MongoId) {
+		if ($this->_data['_id'] instanceof ObjectID) {
 			return $this->_data['_id'];
 		}
 		try {
-			$id = new \MongoId($this->_data['_id']);
+			$id = new ObjectID($this->_data['_id']);
 		} catch (\Exception $e) {
 			return null;
 		}
@@ -118,12 +120,11 @@ class Document implements \JsonSerializable {
 		$id = $this->getID();
 		if (!is_null($id)) {
 			$this->_data['_id'] = $id;
+			$this->_getCollection()->replaceOne(array('_id' => $id), $this->_data);
+		} else {
+			$this->_getCollection()->insertOne($this->_data);
 		}
-		$result = $this->_getCollection()->save($this->_data);
-		if (empty($result['err'])) {
-			return $this->_afterSave($options);
-		}
-		return false;
+		return $this->_afterSave($options);
 	}
 
 	/**
@@ -144,11 +145,8 @@ class Document implements \JsonSerializable {
 			return $this->_afterDelete($options);
 		}
 
-		$result = $this->_getCollection()->remove(array('_id' => $this->getID()));
-		if (empty($result['err'])) {
-			return $this->_afterDelete($options);
-		}
-		return false;
+		$this->_getCollection()->deleteOne(array('_id' => $this->getID()));
+		return $this->_afterDelete($options);
 	}
 
 	/**
@@ -192,7 +190,7 @@ class Document implements \JsonSerializable {
 	}
 
 	/**
-	 * @return \MongoCollection
+	 * @return Collection
 	 */
 	protected function _getCollection() {
 		return Mongo::getInstance()->getDB()->{$this->_collectionName};
@@ -227,22 +225,14 @@ class Document implements \JsonSerializable {
 				$query['className'] = array('$in' => Mongo::getInstance()->getUser()->getPermissions('read'));
 			}
 		}
-		$cursor = $this->_getCollection()->find($query);
-		if (!empty($sort)) {
-			try {
-				$cursor->sort($sort);
-			} catch (\Exception $e) {
-				// continue with unsorted cursor
-			}
-		}
-		if (!is_null($limit)) {
-			$cursor->limit(intval($limit));
-		}
-		if (!is_null($skip)) {
-			$cursor->skip(intval($skip));
-		}
+		$cursor = $this->_getCollection()->find($query, array(
+			'sort' => $sort,
+			'limit' => $limit,
+			'skip' => $skip,
+		));
 		$results = array();
 		foreach ($cursor as $r) {
+			$r = $r->getArrayCopy();
 			if (empty($r['className'])) {
 				// TODO: logging
 				continue;

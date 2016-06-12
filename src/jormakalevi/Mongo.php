@@ -1,6 +1,8 @@
 <?php
 
 namespace jormakalevi;
+use MongoDB\Client;
+use MongoDB\Database;
 
 /**
  * Class Mongo
@@ -45,18 +47,18 @@ class Mongo {
 	 * @param array $options
 	 */
 	public function __construct(array $options = array()) {
-		if (isset($options['db']) && $options['db'] instanceof \MongoDB) {
+		if (isset($options['db']) && $options['db'] instanceof Database) {
 			$this->_db = $options['db'];
 		} else {
-			if (!empty($options['client']) && $options['client'] instanceof \MongoClient) {
+			if (!empty($options['client']) && $options['client'] instanceof Client) {
 				$connection = $options['client'];
 			} elseif (!empty($options['serverString'])) {
-				$connection = new \MongoClient($options['serverString']);
+				$connection = new Client($options['serverString']);
 			} else {
-				$connection = new \MongoClient();
+				$connection = new Client();
 			}
 			$databaseName = !empty($options['dbName']) ? $options['dbName'] : 'jormakalevi';
-			$this->_db = $connection->selectDB($databaseName);
+			$this->_db = $connection->selectDatabase($databaseName);
 		}
 	}
 
