@@ -63,7 +63,7 @@ class Mongo {
 	}
 
 	/**
-	 * @return \MongoDB
+	 * @return \MongoDB\Database
 	 */
 	public function getDB() {
 		return $this->_db;

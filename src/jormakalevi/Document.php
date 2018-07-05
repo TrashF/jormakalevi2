@@ -120,11 +120,17 @@ class Document implements \JsonSerializable {
 		$id = $this->getID();
 		if (!is_null($id)) {
 			$this->_data['_id'] = $id;
-			$this->_getCollection()->replaceOne(array('_id' => $id), $this->_data);
+			$result = $this->_getCollection()->replaceOne(array('_id' => $id), $this->_data);
+			$success = boolval($result->getMatchedCount());
 		} else {
-			$this->_getCollection()->insertOne($this->_data);
+			$result = $this->_getCollection()->insertOne($this->_data);
+			$this->_data['_id'] = $result->getInsertedId();
+			$success = boolval($result->getInsertedCount());
 		}
-		return $this->_afterSave($options);
+		if ($success) {
+			return $this->_afterSave($options);
+		}
+		return false;
 	}
 
 	/**
